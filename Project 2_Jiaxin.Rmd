@@ -1,0 +1,162 @@
+---
+title: "Data 607 Project 2"
+author: "Jiaxin Zheng"
+date: "2024-10-12"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(knitr)
+library(stringr)
+library(tidyr)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+```
+
+
+
+**Data 1**
+**First data is about the World Happiness Report in 2020. This data includes the Happiness Score for 153 countries. The Happiness Score is responses to the main life evaluation question asked in the Gallup World Poll(GWP). The Happiness Score is explained by the following factors: GDP per capita, Healthy Life Expectancy, Social support, Freedom to make life choices, Generosity, Corruption Perception, Residual error.**
+
+```{r}
+#view data 1
+
+file1 <- "https://raw.githubusercontent.com/Jennyjjxxzz/Data-607_Project2/refs/heads/main/wide_data/World%20Happiness%20Report_20_DataForFigure2.1.csv"
+df1 <- read.csv(file1)
+head(df1)
+
+```
+**Question_1: Which region has the highest average happiness (Ladder score)?**
+
+```{r}
+#group by and plot the average
+region_happiness <- df1 %>% 
+  group_by(Regional.indicator) %>%
+  summarize(avg_ladder_score = mean(Ladder.score, na.rm = TRUE)) %>%
+  arrange(desc(avg_ladder_score))
+
+```
+
+```{r}
+ggplot(region_happiness, aes(x = reorder(Regional.indicator, avg_ladder_score), y = avg_ladder_score)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  coord_flip() +
+  labs(title = "Average Happiness (Ladder Score) by Region", x = "Region", y = "Average Ladder Score")+
+  theme_bw()
+```
+**Question_2: Relationship between Ladder score and GDP, social support, and life expectancy**
+
+```{r}
+# Ladder score correlation analysis
+ladder_score_correlations <- df1 %>%
+  select(Ladder.score, Logged.GDP.per.capita, Social.support, Healthy.life.expectancy) %>%
+  cor(use = "complete.obs")
+
+print(ladder_score_correlations)
+
+
+# Plot relationship between Ladder score and GDP per capita
+ggplot(df1, aes(x = Logged.GDP.per.capita, y = Ladder.score)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", col = "red") +
+  labs(title = "Relationship between GDP per capita and Happiness", x = "Logged GDP per capita", y = "Happiness (Ladder Score)")+
+  geom_smooth(method = lm)+
+  theme_bw()
+
+# Plot relationship between Ladder score and Social support
+ggplot(df1, aes(x = Social.support, y = Ladder.score)) +
+  geom_point(color = "green") +
+  geom_smooth(method = "lm", col = "red") +
+  labs(title = "Relationship between Social Support and Happiness", x = "Social Support", y = "Happiness (Ladder Score)")+
+  geom_smooth(method = lm)+
+  theme_bw()
+
+# Plot relationship between Ladder score and Life expectancy
+ggplot(df1, aes(x = Healthy.life.expectancy, y = Ladder.score)) +
+  geom_point(color = "orange") +
+  geom_smooth(method = "lm", col = "red") +
+  labs(title = "Relationship between Life Expectancy and Happiness", x = "Healthy Life Expectancy", y = "Happiness (Ladder Score)")+
+  geom_smooth(method = lm)+
+  theme_bw()
+```
+**Result for data 1: The North America and ANZ region ranks as the happiest region globally base on the highest average Ladder Score. Also the data shows a strong relationship between social support. Supported by their community elevated the happiness level. **
+
+
+
+
+
+
+
+**Data 2**
+**Second data show the ranking of the best universities of the world make by The Times Higher Education for 2020. The data frame consists of Rank char, Score Rank, University name, Country... .**
+```{r}
+#view data 2
+
+file2 <- "https://raw.githubusercontent.com/Jennyjjxxzz/Data-607_Project2/refs/heads/main/wide_data/Word_University_Rank_2020.csv"
+df2 <- read.csv(file2)
+head(df2)
+
+```
+**Question_1: Which country has the most universities in the top 100?**
+```{r}
+#filter the universities ranked in the top 100
+df_top100 <- df2 %>%
+  filter(as.numeric(Rank_Char) <= 100)
+```
+
+```{r}
+country_top100 <- df_top100 %>%
+  group_by(Country) %>%
+  summarize(university_count = n()) %>%
+  arrange(desc(university_count))
+
+print(country_top100)
+```
+```{r}
+ggplot(country_top100, aes(x = reorder(Country, university_count), y = university_count)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Number of Universities in the Top 100 by Country", 
+       x = "Country", 
+       y = "Number of Universities")+
+  theme_minimal()
+```
+**Answer for question_1: The United States has most number of universities in rank of top 100. **
+
+
+
+
+**Data 3**
+**Third data is about the population data from 2019 US Census, and also includes latitude and longitude data for each state's capital city.**
+
+```{r}
+#view data 3
+
+file3 <- "https://raw.githubusercontent.com/Jennyjjxxzz/Data-607_Project2/refs/heads/main/wide_data/2019_Census_US_Population_Data_By_State_Lat_Long.csv"
+df3 <- read.csv(file3)
+head(df3)
+
+```
+**Question_1: Which states have the highest and lowest population estimates in 2019?**
+
+```{r}
+#The state with the highest population in 2019
+highest_population_state <- df3 %>%
+  arrange(desc(POPESTIMATE2019)) %>%
+  slice(1)
+
+print(highest_population_state)
+
+```
+```{r}
+#The state with the lowest population in 2019
+lowest_population_state <- df3 %>%
+  arrange(POPESTIMATE2019) %>%
+  slice(1)
+
+print(lowest_population_state)
+```
+
